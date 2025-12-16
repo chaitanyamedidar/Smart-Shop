@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 if (!API_KEY || API_KEY === 'your_api_key_here') {
-  console.warn('⚠️ Gemini API key not configured. Please add your API key to the .env file.');
+  console.warn('⚠️ AI service not configured. Running in limited mode.');
 }
 
 const genAI = API_KEY && API_KEY !== 'your_api_key_here' 
@@ -12,7 +12,7 @@ const genAI = API_KEY && API_KEY !== 'your_api_key_here'
 
 export async function getProductRecommendations(userQuery, products) {
   if (!genAI) {
-    throw new Error('Gemini API key not configured. Please add your API key to the .env file.');
+    throw new Error('Our AI recommendation service is currently unavailable. Please try browsing our products manually or check back soon!');
   }
 
   try {
@@ -120,21 +120,21 @@ Rules:
     });
     
     if (error.message?.includes('API key') || error.message?.includes('API_KEY') || error.message?.includes('API_KEY_INVALID')) {
-      throw new Error('Invalid API key. Please get a new API key from https://aistudio.google.com/apikey and update your .env file.');
+      throw new Error('We are experiencing technical difficulties. Please try again later or contact support if the issue persists.');
     }
     
     if (error.message?.includes('model') || error.message?.includes('not found') || error.message?.includes('models/') || error.message?.includes('404')) {
-      throw new Error('API key authentication failed. Please get a fresh API key from https://aistudio.google.com/apikey');
+      throw new Error('Our recommendation service is temporarily unavailable. We apologize for the inconvenience. Please try again in a few moments.');
     }
     
-    if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
-      throw new Error('API quota exceeded. Please check your Gemini API usage limits.');
+    if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED') || error.message?.includes('rate limit')) {
+      throw new Error('We are experiencing high traffic at the moment. Please try again in a few minutes. Thank you for your patience!');
     }
     
     if (error.message?.includes('JSON') || error.message?.includes('parse')) {
-      throw new Error('The AI returned an invalid response. Please try again with a different query.');
+      throw new Error('We encountered an issue processing your request. Please try rephrasing your search or try again later.');
     }
     
-    throw new Error(error.message || 'Failed to get recommendations. Please try again.');
+    throw new Error('Something went wrong on our end. We are working to fix this. Please try again shortly.');
   }
 }
