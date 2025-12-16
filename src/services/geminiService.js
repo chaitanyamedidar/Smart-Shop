@@ -67,7 +67,12 @@ const getFallbackRecommendations = (userQuery, products) => {
   ];
   
   for (const rule of fallbackRules) {
-    if (rule.keywords.some(keyword => query.includes(keyword))) {
+    const hasMatch = rule.keywords.some(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+      return regex.test(query);
+    });
+    
+    if (hasMatch) {
       return {
         recommendations: rule.products.map(id => ({
           productId: id,
@@ -79,7 +84,10 @@ const getFallbackRecommendations = (userQuery, products) => {
   }
   
   const allElectronicsKeywords = fallbackRules.flatMap(rule => rule.keywords);
-  const hasElectronicsKeyword = allElectronicsKeywords.some(keyword => query.includes(keyword));
+  const hasElectronicsKeyword = allElectronicsKeywords.some(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    return regex.test(query);
+  });
   
   if (!hasElectronicsKeyword) {
     return {
