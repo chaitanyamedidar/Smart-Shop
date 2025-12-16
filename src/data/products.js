@@ -122,7 +122,7 @@ export const products = [
     category: "Tablets",
     price: 599,
     description: "Versatile tablet with M1 chip for work and creativity",
-    image: "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=400&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1604399852419-f67ee7d5f2ef?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=400&h=400&fit=crop",
     specs: ["10.9-inch display", "M1 chip", "64GB storage", "WiFi"]
   },
   {
