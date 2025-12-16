@@ -10,9 +10,97 @@ const genAI = API_KEY && API_KEY !== 'your_api_key_here'
   ? new GoogleGenerativeAI(API_KEY)
   : null;
 
+const getFallbackRecommendations = (userQuery, products) => {
+  const query = userQuery.toLowerCase().trim();
+  
+  if (!query) {
+    return {
+      recommendations: [1, 7, 16, 2].map(id => ({
+        productId: id,
+        reason: 'Top-rated product recommended by our customers.'
+      })),
+      summary: 'Explore our most popular products across smartphones, laptops, and audio equipment. Each item is carefully selected for quality and performance.'
+    };
+  }
+  
+  const fallbackRules = [
+    {
+      keywords: ['phone', 'smartphone', 'mobile', 'iphone', 'android', 'cell', 'galaxy', 'pixel'],
+      products: [2, 3, 4, 5],
+      summary: 'Based on your search, we found excellent smartphones that match your needs. These devices offer great performance and value.'
+    },
+    {
+      keywords: ['laptop', 'computer', 'programming', 'coding', 'work', 'macbook', 'notebook', 'pc'],
+      products: [7, 9, 10, 8],
+      summary: 'We recommend these laptops for their excellent performance and reliability. Perfect for work and productivity.'
+    },
+    {
+      keywords: ['headphone', 'earphone', 'audio', 'music', 'sound', 'wireless', 'airpod', 'speaker', 'buds'],
+      products: [16, 17, 18, 19],
+      summary: 'These audio products offer exceptional sound quality and comfort. Great for music lovers and daily use.'
+    },
+    {
+      keywords: ['tablet', 'ipad', 'student', 'portable', 'touch'],
+      products: [13, 14, 15],
+      summary: 'These tablets combine portability with powerful performance. Ideal for work, study, and entertainment.'
+    },
+    {
+      keywords: ['cheap', 'affordable', 'budget', 'under', 'low', 'inexpensive', 'value'],
+      products: [6, 12, 19, 4],
+      summary: 'We found great value products that fit your budget without compromising on quality.'
+    },
+    {
+      keywords: ['gaming', 'game', 'rog', 'performance', 'powerful', 'fast'],
+      products: [11, 1, 7],
+      summary: 'High-performance devices perfect for gaming and demanding tasks. These products deliver exceptional speed and power.'
+    },
+    {
+      keywords: ['watch', 'smartwatch', 'fitness', 'tracker', 'wearable'],
+      products: [22, 23],
+      summary: 'Stay connected and track your fitness with these advanced smartwatches. Perfect for health-conscious users.'
+    },
+    {
+      keywords: ['accessory', 'accessories', 'keyboard', 'mouse', 'charger', 'battery'],
+      products: [20, 21, 24],
+      summary: 'Essential accessories to enhance your tech experience. Quality products that complement your devices perfectly.'
+    }
+  ];
+  
+  for (const rule of fallbackRules) {
+    if (rule.keywords.some(keyword => query.includes(keyword))) {
+      return {
+        recommendations: rule.products.map(id => ({
+          productId: id,
+          reason: 'This product matches your requirements perfectly and offers excellent value.'
+        })),
+        summary: rule.summary
+      };
+    }
+  }
+  
+  const allElectronicsKeywords = fallbackRules.flatMap(rule => rule.keywords);
+  const hasElectronicsKeyword = allElectronicsKeywords.some(keyword => query.includes(keyword));
+  
+  if (!hasElectronicsKeyword) {
+    return {
+      recommendations: [],
+      summary: `I noticed you're looking for "${query}", but we're an electronics store specializing in smartphones, laptops, tablets, audio equipment, and tech accessories. However, if you're looking for something innovative and cutting-edge, check out our latest smartphones with vibrant displays, wireless earbuds for enjoying your favorite content on-the-go, or perhaps a tablet for all your digital needs! Let us help you find the perfect tech companion instead.`
+    };
+  }
+  
+  return {
+    recommendations: [1, 7, 16, 13, 20].map(id => ({
+      productId: id,
+      reason: 'Highly recommended product with excellent customer reviews and reliable performance.'
+    })),
+    summary: 'We\'ve selected our best products across multiple categories for you. Each item represents great quality and value in its category.'
+  };
+};
+
 export async function getProductRecommendations(userQuery, products) {
   if (!genAI) {
-    throw new Error('Our AI recommendation service is currently unavailable. Please try browsing our products manually or check back soon!');
+    console.warn('API not available, using fallback recommendations');
+    return getFallbackRecommendations(userQuery, products);
   }
 
   try {
@@ -112,29 +200,8 @@ Rules:
       summary: recommendation.summary || 'Here are my recommendations based on your preferences.'
     };
   } catch (error) {
-    console.error('Error getting recommendations:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
+    console.error('API error, switching to fallback:', error.message);
     
-    if (error.message?.includes('API key') || error.message?.includes('API_KEY') || error.message?.includes('API_KEY_INVALID')) {
-      throw new Error('We are experiencing technical difficulties. Please try again later or contact support if the issue persists.');
-    }
-    
-    if (error.message?.includes('model') || error.message?.includes('not found') || error.message?.includes('models/') || error.message?.includes('404')) {
-      throw new Error('Our recommendation service is temporarily unavailable. We apologize for the inconvenience. Please try again in a few moments.');
-    }
-    
-    if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED') || error.message?.includes('rate limit')) {
-      throw new Error('We are experiencing high traffic at the moment. Please try again in a few minutes. Thank you for your patience!');
-    }
-    
-    if (error.message?.includes('JSON') || error.message?.includes('parse')) {
-      throw new Error('We encountered an issue processing your request. Please try rephrasing your search or try again later.');
-    }
-    
-    throw new Error('Something went wrong on our end. We are working to fix this. Please try again shortly.');
+    return getFallbackRecommendations(userQuery, products);
   }
 }
